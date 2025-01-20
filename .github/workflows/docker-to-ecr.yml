@@ -1,0 +1,55 @@
+name: Push Docker Image to AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Assume AWS Role
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/AmazonGitHubAccessRole
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-springboot-app:latest .
+
+      # Tag the Docker image for ECR
+      - name: Tag Docker image
+        run: |
+          REPOSITORY_URI=929910138721.dkr.ecr.ap-south-1.amazonaws.com/projectapi
+          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
+          docker tag my-springboot-app:latest $REPOSITORY_URI:$IMAGE_TAG
+          docker tag my-springboot-app:latest $REPOSITORY_URI:latest
+
+      # Push the Docker image to Amazon ECR
+      - name: Push Docker image to Amazon ECR
+        run: |
+          REPOSITORY_URI=929910138721.dkr.ecr.ap-south-1.amazonaws.com/projectapi
+          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
+          docker push $REPOSITORY_URI:$IMAGE_TAG
+          docker push $REPOSITORY_URI:latest
+
+    env:
+      AWS_REGION: ap-south-1  # Replace with your AWS region, e.g., us-east-1

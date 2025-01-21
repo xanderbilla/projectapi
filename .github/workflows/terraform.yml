@@ -1,0 +1,53 @@
+name: Deploy Image on EC2
+
+on:
+  workflow_run:
+    workflows:
+      - Push Docker Image to AWS ECR
+    types:
+      - completed
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 'latest'  # Specify the Terraform version to use
+
+      # Step 3: Configure AWS credentials (User = brook)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'ap-south-1'  # Specify the AWS region
+
+      # Step 4: Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Step 5: Run Terraform plan (for review)
+      - name: Terraform Plan
+        run: terraform plan
+
+      # Step 6: Apply Terraform (if you want automatic apply, uncomment the line below)
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        # This step will automatically apply the changes, remove `-auto-approve` for manual approval
+
+      # Step 7: Destroy Terraform resources
+      # - name: Terraform Destroy
+      #   run: terraform destroy -auto-approve
+      #   # This step will automatically destroy the resources, remove `-auto-approve` for manual approval

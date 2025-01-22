@@ -206,3 +206,52 @@ resource "aws_iam_instance_profile" "projectapi_ec2_instance_profile" {
     name = "projectapi-ec2-instance-profile"
     role = aws_iam_role.projectapi_ec2_role.name
 }
+
+resource "aws_lb" "projectapi_alb" {
+    name               = "projectapi-alb"
+    internal           = false
+    load_balancer_type = "application"
+    security_groups    = [aws_security_group.projectapi_alb_sg.id]
+    subnets            = [aws_subnet.projectapi_public_subnet_1.id, aws_subnet.projectapi_public_subnet_2.id]
+
+    tags = {
+        Name = "projectapi-alb"
+    }
+}
+
+resource "aws_lb_target_group" "projectapi_tg" {
+    name     = "projectapi-tg"
+    port     = 8080
+    protocol = "HTTP"
+    vpc_id   = aws_vpc.projectapi_vpc.id
+
+    health_check {
+        path                = "/health"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 2
+        matcher             = "200"
+    }
+
+    tags = {
+        Name = "projectapi-tg"
+    }
+}
+
+resource "aws_lb_listener" "projectapi_listener" {
+    load_balancer_arn = aws_lb.projectapi_alb.arn
+    port              = "80"
+    protocol          = "HTTP"
+
+    default_action {
+        type             = "forward"
+        target_group_arn = aws_lb_target_group.projectapi_tg.arn
+    }
+}
+
+resource "aws_lb_target_group_attachment" "projectapi_tg_attachment" {
+    target_group_arn = aws_lb_target_group.projectapi_tg.arn
+    target_id        = aws_instance.projectapi_ec2.id
+    port             = 8080
+}

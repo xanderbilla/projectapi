@@ -14,56 +14,56 @@ permissions:
   contents: read
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  # build-and-push:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the repository code
-      - name: Checkout code
-        uses: actions/checkout@v3
+  #   steps:
+  #     # Checkout the repository code
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'ap-south-1'
+  #     # Configure AWS credentials
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: 'ap-south-1'
 
-      # Log in to Amazon ECR
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+  #     # Log in to Amazon ECR
+  #     - name: Log in to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
 
-      # Ensure the ECR repository exists
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr describe-repositories --repository-names ${{ secrets.REPOSITORY_NAME }} --region ap-south-1 2>/dev/null || \
-          aws ecr create-repository --repository-name ${{ secrets.REPOSITORY_NAME }} --region ap-south-1
+  #     # Ensure the ECR repository exists
+  #     - name: Ensure ECR repository exists
+  #       run: |
+  #         aws ecr describe-repositories --repository-names ${{ secrets.REPOSITORY_NAME }} --region ap-south-1 2>/dev/null || \
+  #         aws ecr create-repository --repository-name ${{ secrets.REPOSITORY_NAME }} --region ap-south-1
 
-      # Build the Docker image
-      - name: Build Docker image
-        run: |
-          docker build -t my-springboot-app:latest .
+  #     # Build the Docker image
+  #     - name: Build Docker image
+  #       run: |
+  #         docker build -t my-springboot-app:latest .
 
-      # Tag the Docker image for ECR
-      - name: Tag Docker image
-        run: |
-          REPOSITORY_URI=${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
-          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
-          docker tag my-springboot-app:latest $REPOSITORY_URI:$IMAGE_TAG
-          docker tag my-springboot-app:latest $REPOSITORY_URI:latest
+  #     # Tag the Docker image for ECR
+  #     - name: Tag Docker image
+  #       run: |
+  #         REPOSITORY_URI=${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
+  #         IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
+  #         docker tag my-springboot-app:latest $REPOSITORY_URI:$IMAGE_TAG
+  #         docker tag my-springboot-app:latest $REPOSITORY_URI:latest
 
-      # Push the Docker image to Amazon ECR
-      - name: Push Docker image to Amazon ECR
-        run: |
-          REPOSITORY_URI=${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
-          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
-          docker push $REPOSITORY_URI:$IMAGE_TAG
-          docker push $REPOSITORY_URI:latest
+  #     # Push the Docker image to Amazon ECR
+  #     - name: Push Docker image to Amazon ECR
+  #       run: |
+  #         REPOSITORY_URI=${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
+  #         IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
+  #         docker push $REPOSITORY_URI:$IMAGE_TAG
+  #         docker push $REPOSITORY_URI:latest
 
   terraform:
-    needs: build-and-push
+    # needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       # Checkout the code
@@ -102,7 +102,8 @@ jobs:
 
       # Apply Terraform
       - name: Apply Terraform
-        run: terraform apply -auto-approve
+        # run: terraform apply -auto-approve
+        run: terraform destroy -auto-approve
         working-directory: infrastructure
 
         

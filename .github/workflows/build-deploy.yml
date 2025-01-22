@@ -38,7 +38,7 @@ jobs:
       # Ensure the ECR repository exists
       - name: Ensure ECR repository exists
         run: |
-          aws ecr describe-repositories --repository-names ${{ secrets.REPOSITORY_NAME }} --region ap-south-1 || \
+          aws ecr describe-repositories --repository-names ${{ secrets.REPOSITORY_NAME }} --region ap-south-1 2>/dev/null || \
           aws ecr create-repository --repository-name ${{ secrets.REPOSITORY_NAME }} --region ap-south-1
 
       # Build the Docker image
@@ -79,7 +79,7 @@ jobs:
           aws-region: 'ap-south-1'
 
       # Check for backend environment
-      - name: Ensure S3 bucket for Terraform state exists
+      - name: Verify backend environment resources
         run: |
           aws s3api head-bucket --bucket terraform-state-bucket-myproject 2>/dev/null || \
           aws s3api create-bucket --bucket terraform-state-bucket-myproject --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1

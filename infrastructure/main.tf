@@ -4,11 +4,11 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = "terraform-state-bucket-myproject"   # Your S3 bucket name
-    key            = "terraform/state/terraform.tfstate"  # Path to store the state file in the bucket
-    region         = "ap-south-1"  # Your AWS region
-    dynamodb_table = "terraform-locks"  # (Optional) DynamoDB table for state locking
-    encrypt        = true  # Encrypt state file at rest (recommended)
+    bucket         = "terraform-state-bucket-myproject"
+    key            = "terraform/state/terraform.tfstate"
+    region         = "ap-south-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
   }
 }
 
@@ -254,4 +254,61 @@ resource "aws_lb_target_group_attachment" "projectapi_tg_attachment" {
     target_group_arn = aws_lb_target_group.projectapi_tg.arn
     target_id        = aws_instance.projectapi_ec2.id
     port             = 8080
+}
+
+resource "aws_cloudfront_origin_access_identity" "projectapi_oai" {
+    comment = "OAI for projectapi"
+}
+
+resource "aws_cloudfront_distribution" "projectapi_distribution" {
+    origin {
+        domain_name = aws_lb.projectapi_alb.dns_name
+        origin_id   = "projectapi-alb"
+
+        custom_origin_config {
+            http_port              = 80
+            https_port             = 443
+            origin_protocol_policy = "http-only"
+            origin_ssl_protocols   = ["TLSv1.2"]
+        }
+    }
+
+    enabled             = true
+    is_ipv6_enabled     = true
+    comment             = "CloudFront distribution for projectapi"
+    default_root_object = ""
+
+    default_cache_behavior {
+        allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+        cached_methods   = ["GET", "HEAD"]
+        target_origin_id = "projectapi-alb"
+
+        forwarded_values {
+            query_string = false
+            cookies {
+                forward = "none"
+            }
+        }
+
+        viewer_protocol_policy = "redirect-to-https"
+        min_ttl                = 0
+        default_ttl            = 3600
+        max_ttl                = 86400
+    }
+
+    price_class = "PriceClass_100"
+
+    restrictions {
+        geo_restriction {
+            restriction_type = "none"
+        }
+    }
+
+    viewer_certificate {
+        cloudfront_default_certificate = true
+    }
+
+    tags = {
+        Name = "projectapi-distribution"
+    }
 }

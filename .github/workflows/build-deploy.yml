@@ -102,8 +102,8 @@ jobs:
 
       # Apply Terraform
       - name: Apply Terraform
-        # run: terraform apply -auto-approve
-        run: terraform destroy -auto-approve
+        run: terraform apply -auto-approve
+        # run: terraform destroy -auto-approve
         working-directory: infrastructure
 
         

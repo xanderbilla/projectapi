@@ -312,3 +312,23 @@ resource "aws_cloudfront_distribution" "projectapi_distribution" {
         Name = "projectapi-distribution"
     }
 }
+
+output "vpc_id" {
+    value = aws_vpc.projectapi_vpc.id
+}
+
+output "instance_id" {
+    value = aws_instance.projectapi_ec2.id
+}
+
+output "cloudfront_endpoint" {
+    value = "http://${aws_cloudfront_distribution.projectapi_distribution.domain_name}/health"
+}
+
+output "alb_endpoint" {
+    value = "http://${aws_lb.projectapi_alb.dns_name}/health"
+}
+
+output "ec2_public_ip" {
+    value = aws_instance.projectapi_ec2.public_ip
+}

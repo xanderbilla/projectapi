@@ -1,10 +1,12 @@
 name: Deploy docker image
 
 on:
-  workflow_run:
-    workflows: ["Build docker image"]
-    types:
-      - completed   
+  push:
+    branches:
+      - main
+    paths:
+      # - 'src/**' 
+      - 'infrastructure/**'      
 
 permissions:
   contents: read

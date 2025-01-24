@@ -42,3 +42,6 @@ build/
 .override
 .terraform/
 terraform.tfstate.backup
+
+local
+infra-mod

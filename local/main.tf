@@ -10,15 +10,15 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-bucket-myproject"
-    key            = "terraform/state/terraform.tfstate"
-    region         = "ap-south-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket         = "terraform-state-bucket-myproject"
+#     key            = "terraform/state/terraform.tfstate"
+#     region         = "ap-south-1"
+#     dynamodb_table = "terraform-locks"
+#     encrypt        = true
+#   }
+# }
 
 resource "aws_vpc" "projectapi_vpc" {
     cidr_block = "10.0.0.0/16"

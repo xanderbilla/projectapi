@@ -212,8 +212,9 @@ resource "aws_instance" "projectapi_ec2" {
                 sudo systemctl enable amazon-ssm-agent
                 sudo systemctl start amazon-ssm-agent
                 sudo systemctl start docker
+                caller=$(aws sts get-caller-identity --query 'Account' --output text)
+                aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin $caller.dkr.ecr.ap-south-1.amazonaws.com
                 secret=$(aws secretsmanager get-secret-value --secret-id projectapi/image-repo --query 'SecretString' --output text | python -c "import json, sys; print(json.load(sys.stdin)['REPO'])")
-                aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin 929910138721.dkr.ecr.ap-south-1.amazonaws.com
                 sudo docker pull $secret:latest
                 sudo docker tag $secret my-spring-image
                 sudo docker rmi -f $secret:latest

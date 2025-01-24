@@ -21,6 +21,6 @@ public class HealthController {
     @GetMapping
     public ResponseEntity<String> healthCheck() {
         logger.info("Health check passed");
-        return new ResponseEntity<>("API is running", HttpStatus.OK);
+        return new ResponseEntity<>("Service is active ✅", HttpStatus.OK);
     }
 }

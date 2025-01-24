@@ -1,6 +1,14 @@
-provider "aws" {
-    region = "ap-south-1"
+variable "region" {
+  description = "The AWS region to deploy resources"
+  type        = string
+  default     = "ap-south-1"
 }
+
+provider "aws" {
+    region = var.region
+}
+
+data "aws_caller_identity" "current" {}
 
 terraform {
   backend "s3" {
@@ -104,6 +112,12 @@ resource "aws_security_group" "projectapi_ec2_sg" {
         protocol    = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
+    ingress {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 
     ingress {
         from_port   = 8080
@@ -150,6 +164,12 @@ resource "aws_iam_role_policy_attachment" "projectapi_ec2_ecr_readonly" {
     policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+# Attach AmazonSSMManagedInstanceCore policy to the EC2 role
+resource "aws_iam_role_policy_attachment" "projectapi_ec2_ssm" {
+    role       = aws_iam_role.projectapi_ec2_role.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_policy" "projectapi_secrets_manager_policy" {
     name        = "projectapi-secrets-manager-policy"
     description = "Policy for Secrets Manager access"
@@ -185,8 +205,12 @@ resource "aws_instance" "projectapi_ec2" {
 
     user_data = <<-EOF
                 #!/bin/bash
+                sudo yum update -y
                 sudo dnf install docker -y
                 sudo dnf install python -y
+                sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+                sudo systemctl enable amazon-ssm-agent
+                sudo systemctl start amazon-ssm-agent
                 sudo systemctl start docker
                 secret=$(aws secretsmanager get-secret-value --secret-id projectapi/image-repo --query 'SecretString' --output text | python -c "import json, sys; print(json.load(sys.stdin)['REPO'])")
                 aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin 929910138721.dkr.ecr.ap-south-1.amazonaws.com
@@ -313,6 +337,61 @@ resource "aws_cloudfront_distribution" "projectapi_distribution" {
     }
 }
 
+# EventBridge Rule to Trigger on ECR Image Push
+resource "aws_cloudwatch_event_rule" "ecr_image_push_rule" {
+  name        = "ecr-image-push-rule"
+  description = "Triggered when a new image is pushed to ECR"
+  event_pattern = <<EOT
+  {
+    "source": ["aws.ecr"],
+    "detail-type": ["ECR Image Action"],
+    "detail": {
+      "action-type": ["PUSH"],
+      "result": ["SUCCESS"],
+      "repository-name": ["ecr-ssm"],
+      "image-tag": ["latest"]
+    }
+  }
+  EOT
+}
+
+resource "aws_iam_role" "eventbridge_ssm_role" {
+  name = "eventbridge-ssm-role"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "events.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "eventbridge_ssm_attach" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+  role       = aws_iam_role.eventbridge_ssm_role.name
+}
+
+# EventBridge Target to Trigger SSM Run Command
+resource "aws_cloudwatch_event_target" "ecr_event_target" {
+    rule      = aws_cloudwatch_event_rule.ecr_image_push_rule.name
+    target_id = "ssm-command-target"
+    arn       = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:document/install-server"
+
+    run_command_targets {
+        key    = "InstanceIds"
+        values = ["${aws_instance.projectapi_ec2.id}"]
+    }
+
+    role_arn = aws_iam_role.eventbridge_ssm_role.arn
+}
+
 output "vpc_id" {
     value = aws_vpc.projectapi_vpc.id
 }
@@ -322,7 +401,7 @@ output "instance_id" {
 }
 
 output "cloudfront_endpoint" {
-    value = "http://${aws_cloudfront_distribution.projectapi_distribution.domain_name}/health"
+    value = "https://${aws_cloudfront_distribution.projectapi_distribution.domain_name}/health"
 }
 
 output "alb_endpoint" {

@@ -218,7 +218,7 @@ resource "aws_instance" "projectapi_ec2" {
                 sudo docker tag $secret my-spring-image
                 sudo docker rmi -f $secret:latest
                 secret=$(aws secretsmanager get-secret-value --secret-id mongo/connection-url --query 'SecretString' --output text | python -c "import json, sys; print(json.load(sys.stdin)['MONGO_URI'])")
-                sudo docker run -p 8080:8080 -e MONGO_URI=$secret my-spring-image
+                sudo docker run -d -p 8080:8080 -e MONGO_URI=$secret --name spring-app my-spring-image
                 EOF
 
     tags = {
@@ -348,7 +348,7 @@ resource "aws_cloudwatch_event_rule" "ecr_image_push_rule" {
     "detail": {
       "action-type": ["PUSH"],
       "result": ["SUCCESS"],
-      "repository-name": ["ecr-ssm"],
+      "repository-name": ["myprojectapi"],
       "image-tag": ["latest"]
     }
   }
@@ -382,7 +382,7 @@ resource "aws_iam_role_policy_attachment" "eventbridge_ssm_attach" {
 resource "aws_cloudwatch_event_target" "ecr_event_target" {
     rule      = aws_cloudwatch_event_rule.ecr_image_push_rule.name
     target_id = "ssm-command-target"
-    arn       = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:document/install-server"
+    arn       = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:document/projectapi-update-container"
 
     run_command_targets {
         key    = "InstanceIds"

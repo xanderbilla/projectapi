@@ -46,6 +46,15 @@ public class TaskService {
         }
     }
 
+    public List<TaskEntity> getTasksByStatus(String status) {
+        try {
+            return taskRepo.findByStatus(status);
+        } catch (Exception e) {
+            logger.error("Error retrieving tasks by status", e);
+            return null;
+        }
+    }
+
     public boolean deleteTask(ObjectId id) {
         try {
             TaskEntity existingTask = taskRepo.findById(id).orElse(null);

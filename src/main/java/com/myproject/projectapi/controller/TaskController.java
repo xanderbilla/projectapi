@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.myproject.projectapi.model.TaskEntity;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -90,6 +92,21 @@ public class TaskController {
         } catch (Exception e) {
             logger.error("Error updating task", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error updating task");
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<TaskEntity>> getTasksByStatus(@RequestParam(value = "status", required = true) String status) {
+        try {
+            if (status != null && !status.isEmpty()) {
+                return ResponseEntity.ok(taskService.getTasksByStatus(status));
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching tasks by status", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error fetching tasks"); // More generic
+                                                                                                         // message
         }
     }
 }

@@ -1,8 +1,10 @@
 package com.myproject.projectapi.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.bson.types.ObjectId;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/tasks")
+@CrossOrigin(origins = "*")
 public class TaskController {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
@@ -37,6 +40,7 @@ public class TaskController {
             if (task == null || task.getTitle() == null || task.getTitle().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task title is required");
             }
+            task.setCreatedAt(LocalDateTime.now());
             return taskService.saveTask(task);
         } catch (Exception e) {
             logger.error("Error creating task", e);

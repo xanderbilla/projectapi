@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @Document(collection = "tasks")
-public abstract class TaskEntity {
+public class TaskEntity {
     @Id
     private ObjectId id;
     @NonNull

@@ -214,10 +214,9 @@ resource "aws_instance" "projectapi_ec2" {
                 sudo systemctl start docker
                 caller=$(aws sts get-caller-identity --query 'Account' --output text)
                 aws ecr get-login-password --region ap-south-1 | sudo docker login --username AWS --password-stdin $caller.dkr.ecr.ap-south-1.amazonaws.com
-                secret=$(aws secretsmanager get-secret-value --secret-id projectapi/image-repo --query 'SecretString' --output text | python -c "import json, sys; print(json.load(sys.stdin)['REPO'])")
-                sudo docker pull $secret:latest
-                sudo docker tag $secret my-spring-image
-                sudo docker rmi -f $secret:latest
+                sudo docker pull $caller.dkr.ecr.ap-south-1.amazonaws.com/myprojectapi:latest
+                sudo docker tag $caller.dkr.ecr.ap-south-1.amazonaws.com/myprojectapi my-spring-image
+                sudo docker rmi -f $caller.dkr.ecr.ap-south-1.amazonaws.com/myprojectapi:latest
                 secret=$(aws secretsmanager get-secret-value --secret-id mongo/connection-url --query 'SecretString' --output text | python -c "import json, sys; print(json.load(sys.stdin)['MONGO_URI'])")
                 sudo docker run -d -p 8080:8080 -e MONGO_URI=$secret --name spring-app my-spring-image
                 EOF

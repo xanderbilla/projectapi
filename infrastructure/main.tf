@@ -356,7 +356,7 @@ resource "aws_cloudwatch_event_rule" "ecr_image_push_rule" {
 }
 
 resource "aws_ssm_document" "run_command" {
-    name          = "RunShellScript"
+    name          = "ProjectAPIShellScript"
     document_type = "Command"
 
     content = jsonencode({

@@ -53,29 +53,17 @@ jobs:
       # Tag the Docker image for ECR
       - name: Tag Docker image
         run: |
-<<<<<<< HEAD
           caller=$(aws sts get-caller-identity --query 'Account' --output text)
           REPOSITORY_URI=$caller.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY_NAME }}
           IMAGE_TAG=$(echo ${{ env.IMAGE_TAG }} | head -c 7)
-=======
-          caller=$(aws sts get-caller-identity --query Account --output text)
-          REPOSITORY_URI=$caller.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
-          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
->>>>>>> 35443e09d855d18d5115da0b53f77cd6acf9af6a
           docker tag my-springboot-app:latest $REPOSITORY_URI:$IMAGE_TAG
           docker tag my-springboot-app:latest $REPOSITORY_URI:latest
 
       # Push the Docker image to Amazon ECR
       - name: Push Docker image to Amazon ECR
         run: |
-<<<<<<< HEAD
           caller=$(aws sts get-caller-identity --query 'Account' --output text)
           REPOSITORY_URI=$caller.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY_NAME }}
           IMAGE_TAG=$(echo ${{ env.IMAGE_TAG }} | head -c 7)
-=======
-          caller=$(aws sts get-caller-identity --query Account --output text)
-          REPOSITORY_URI=$caller.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.REPOSITORY_NAME }}
-          IMAGE_TAG=$(echo $GITHUB_SHA | head -c 7)
->>>>>>> 35443e09d855d18d5115da0b53f77cd6acf9af6a
           docker push $REPOSITORY_URI:$IMAGE_TAG
           docker push $REPOSITORY_URI:latest

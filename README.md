@@ -4,7 +4,7 @@ A simple API application for a to-do list, focusing on deployment and the use of
 
 ## API Reference
 
-API Endpoint - [https://d3iklkly37bv64.cloudfront.net/health](https://d3iklkly37bv64.cloudfront.net/health")
+API Endpoint - [https://d3iklkly37bv64.cloudfront.net/health](https://d3iklkly37bv64.cloudfront.net/heath)
 
 | Endpoint                  | Method | Description                  |
 | :------------------------ | :----- | :--------------------------- |
@@ -133,9 +133,9 @@ docker run -d -p 8080:8080 -e MONGO_URI="mongodb+srv://YOUR-DB-LINK/projectapi" 
 
 ## References
 
-[Github Actions Docs](https://docs.github.com/actions)
-[AWS Docs](https://docs.aws.amazon.com/)
-[Hashicoprs docs](https://developer.hashicorp.com/terraform/docs)
+[Github Actions Docs](https://docs.github.com/actions) |
+[AWS Docs](https://docs.aws.amazon.com/) |
+[Hashicoprs docs](https://developer.hashicorp.com/terraform/docs) |
 [Docker Docs](https://docs.docker.com)
 
 ## Authors

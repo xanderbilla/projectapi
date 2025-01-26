@@ -15,12 +15,6 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
-    env:
-      AWS_REGION: 'ap-south-1'
-      REPOSITORY_NAME: 'myprojectapi'
-      IMAGE_TAG: ${{ github.sha }}
-
     steps:
       # Checkout the repository code
       - name: Checkout code

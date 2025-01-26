@@ -1,26 +1,36 @@
+terraform {
+  backend "s3" {
+    bucket         = "terraform-state-bucket-myproject"
+    key            = "terraform/state/terraform.tfstate"
+    region         = "ap-south-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+
 module "vpc" {
   source              = "./modules/vpc"
   vpc_cidr_block      = "10.0.0.0/16"
   public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
   availability_zones  = ["ap-south-1a", "ap-south-1b"]
-  project_name        = "lab"
+  project_name        = "projectapi"
 }
 
 module "security_groups" {
   source           = "./modules/security_group"
-  project_name     = "lab"
+  project_name     = "projectapi"
   vpc_id           = module.vpc.vpc_id 
   ssh_allowed_cidr = "0.0.0.0/0"
 }
 
 module "ec2_iam_role" {
   source       = "./modules/iam_role"
-  project_name = "lab"
+  project_name = "projectapi"
 }
 
 module "ec2_instances" {
   source             = "./modules/ec2"
-  project_name       = "lab"
+  project_name       = "projectapi"
   ami_id             = "ami-0d2614eafc1b0e4d2"
   public_subnet_ids  = module.vpc.public_subnet_ids 
   ec2_role_name      = module.ec2_iam_role.ec2_role_name
@@ -29,7 +39,7 @@ module "ec2_instances" {
 
 module "alb" {
   source             = "./modules/alb"
-  project_name       = "lab"
+  project_name       = "projectapi"
   vpc_id             = module.vpc.vpc_id
   subnet_ids         = module.vpc.public_subnet_ids                   
   security_group_ids = [module.security_groups.alb_security_group_id] 
@@ -38,8 +48,8 @@ module "alb" {
 
 module "cloudfront" {
   source           = "./modules/cloudfront"
-  project_name     = "lab"
-  target_origin_id = "lab-alb"
+  project_name     = "projectapi"
+  target_origin_id = "projectapi-alb"
   target_alb       = module.alb.alb_dns_name
 }
 

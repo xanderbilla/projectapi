@@ -41,7 +41,7 @@ To run this project, you will need to add the following environment variables to
 
 ## Architecture
 
-![workflow](https://xanderbilla.s3.ap-south-1.amazonaws.com/projects/projectapi-workflow.png)
+![workflow](https://xanderbilla.s3.ap-south-1.amazonaws.com/projects/project-workflow.png)
 
 To deploy this application, the following DevOps tools and resources were used:
 
@@ -85,7 +85,7 @@ To run this project in your AWS cloud environment:
 
 3. Go to the **Actions** tab and run the jobs manually for the first time to set up the infrastructure in your cloud environment.
 
-Once the environment is set, any new changes detected in the source code will update the Docker image on ECR, triggering an event to update the container with the new image.
+> Once the environment is set, any new changes detected in the source code will update the Docker image on ECR, triggering an event to update the container with the new image.
 
 ## Usage/Examples
 

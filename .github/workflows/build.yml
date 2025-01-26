@@ -16,6 +16,11 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: 'ap-south-1'
+      REPOSITORY_NAME: 'myprojectapi'
+      IMAGE_TAG: ${{ github.sha }}
+
     steps:
       # Checkout the repository code
       - name: Checkout code
@@ -27,7 +32,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'ap-south-1'
+          aws-region: ${{ env.AWS_REGION }}
 
       # Log in to Amazon ECR
       - name: Log in to Amazon ECR

@@ -41,7 +41,7 @@ To run this project, you will need to add the following environment variables to
 
 ## Architecture
 
-![workflow](https://xanderbilla.s3.ap-south-1.amazonaws.com/projects/project-flow.png)
+![workflow](https://xanderbilla.s3.ap-south-1.amazonaws.com/projects/projectapi-flow.png)
 
 To deploy this application, the following DevOps tools and resources were used:
 

@@ -75,6 +75,8 @@ This entire infrastructure is created using Terraform, with the state stored in 
 
 To run this project in your AWS cloud environment:
 
+> Make sure to make change the s3 bucket name  in the [infrastructure/main.tf](https://github.com/xanderbilla/projectapi/blob/main/infrastructure/main.tf) and [replace the line 34 and 35 with your bucket name](https://github.com/xanderbilla/projectapi/blob/main/.github/workflows/deploy.yml) to manage the state remotely 
+
 1. [Click here](https://github.com/xanderbilla/projectapi/fork) to fork the repository.
 2. Go to **Repository Settings > Security and variables > Actions** and add the following environment variables:
 

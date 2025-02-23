@@ -1,95 +1,79 @@
-# ProjectAPI
+# AWS DevOps To-Do API 
 
-A simple API application for a to-do list, focusing on deployment and the use of DevOps tools.
+A scalable and fully automated API application for managing to-do lists, built with Java Spring Boot and deployed on AWS using DevOps best practices.
 
 ## API Reference
 
-API Endpoint - [https://d3iklkly37bv64.cloudfront.net/health](https://d3iklkly37bv64.cloudfront.net/heath)
+**Base URL:** [https://d3iklkly37bv64.cloudfront.net](https://d3iklkly37bv64.cloudfront.net)
 
 | Endpoint                  | Method | Description                  |
-| :------------------------ | :----- | :--------------------------- |
-| `/health`                 | GET    | Get the health status        |
-| `/tasks`                  | GET    | Get all tasks                |
-| `/tasks`                  | POST   | Create a new task            |
-| `/tasks/{id}`             | GET    | Get a specific task by ID    |
-| `/tasks/{id}`             | PUT    | Update a specific task by ID |
-| `/search?status={status}` | GET    | Search by status             |
+|--------------------------|--------|------------------------------|
+| `/health`                 | GET    | Checks application health    |
+| `/tasks`                  | GET    | Retrieves all tasks          |
+| `/tasks`                  | POST   | Creates a new task           |
+| `/tasks/{id}`             | GET    | Retrieves a task by ID       |
+| `/tasks/{id}`             | PUT    | Updates a task by ID         |
+| `/search?status={status}` | GET    | Searches tasks by status     |
 
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your `.env` file:
+Ensure the following environment variable is set before running the application:
 
-- `MONGO_URI`
+- `MONGO_URI`: MongoDB connection string
 
-## Workflow
+## Deployment Workflow
 
-### Continuous Integration/Continuous Deployment (CI/CD)
+### CI/CD Automation
 
-- **GitHub Actions**: Used for automating the build and deployment process.
+- **GitHub Actions** automates the build, test, and deployment process.
+- **Docker** ensures environment consistency across development and production.
+- **Terraform** provisions the cloud infrastructure.
 
-### Containerization
+### AWS Cloud Services
 
-- **Docker**: To containerize the application for consistent environments across different stages of development and deployment.
+- **ECR**: Stores Docker images securely.
+- **EC2**: Hosts and runs the application.
+- **Secrets Manager**: Manages sensitive credentials.
+- **Systems Manager (SSM)**: Automates container updates when a new image is pushed.
+- **ALB (Application Load Balancer)**: Distributes traffic efficiently and integrates with CloudFront.
+- **CloudFront**: Improves performance through caching and SSL/TLS security.
+- **CloudWatch**: Monitors application logs and infrastructure events.
 
-### Cloud Services
-
-- **[AWS](https://aws.amazon.com)**: Used for hosting the application and database.
-
-### Monitoring and Logging
-
-- **[AWS CloudWatch](https://aws.amazon.com/cloudwatch)**: For monitoring the application.
-
-## Architecture
+## Architecture Overview
 
 ![workflow](https://xanderbilla.s3.ap-south-1.amazonaws.com/projects/projectapi-flow.png)
 
-To deploy this application, the following DevOps tools and resources were used:
+### Infrastructure Details
 
-- **GitHub Repository**: [projectapi](https://www.github.com/xanderbilla/projectapi) is used to store the project code written in Java.
-- **GitHub Actions**: CI/CD Pipeline used to build the Docker image and infrastructure.
-- **Elastic Container Registry (ECR)**: Stores the Docker image.
-- **Elastic Cloud Compute (EC2)**: An IaaS platform used to deploy the application.
-- **AWS Secret Manager**: Stores sensitive data (e.g., `MONGO_URI`).
-- **AWS System Manager**: Updates running containers when a new image is pushed to ECR, using a CloudWatch event bridge rule.
-- **Application Load Balancer**: Balances traffic and is connected with CloudFront to cache traffic and secure it using SSL/TLS.
+- **VPC** with multiple availability zones and subnets.
+- **EC2 Instances** configured with necessary roles for ECR, SSM, and Secrets Manager access.
+- **CloudWatch Event Rules** trigger updates for new Docker images.
+- **ALB** balances traffic across EC2 instances.
+- **CloudFront** optimizes and secures content delivery.
+- **Terraform** manages infrastructure as code (IaC), storing state in an **S3 bucket** with **DynamoDB** for state locking.
 
-## About this project
+## Setting Up in Your AWS Environment
 
-This project is set up on Amazon Web Services and integrated with [GitHub Actions](https://docker.com). It includes a Java Spring Boot application for a backend to-do application. The GitHub Action builds the [Docker](https://docker.com) image and pushes it to the ECR repository. If the repository does not exist, it is created automatically and named `myprojectapi`.
+Before deployment, update the S3 bucket name in:
 
-In the AWS environment, a [VPC](https://aws.amazon.com/vpc/) is created with multiple availability zones and subnets containing multiple EC2 instances (two in this case). The VPC has internet access.
+- [`infrastructure/main.tf`](https://github.com/xanderbilla/projectapi/blob/main/infrastructure/main.tf)
+- [`deploy.yml`](https://github.com/xanderbilla/projectapi/blob/main/.github/workflows/deploy.yml) (lines 34 and 35)
 
-[EC2](https://aws.amazon.com/ec2/) instances are created with a role that allows access to SSM Document, secrets from AWS Secret Manager, and ECR read-only permission to download Docker images from ECR.
+### Deployment Steps:
 
-Initially, the EC2 instance uses user data to run and download necessary packages and run the container. It installs the [Amazon SSM Agent](https://docs.aws.amazon.com/systems-manager/latest/userguide/agent-install-al2.html), Docker, and Python.
+1. **Fork the repository**: [Click here](https://github.com/xanderbilla/projectapi/fork)
+2. **Set up GitHub Actions secrets**:
 
-The EC2 instance downloads the image from ECR and runs the container. If there is an updated image on ECR, a CloudWatch event triggers an update, running a script from the SSM document to stop the running container and replace it with the new one.
+   | Variable Name           | Description                      |
+   |-------------------------|----------------------------------|
+   | `AWS_ACCESS_KEY_ID`     | AWS access key ID               |
+   | `AWS_SECRET_ACCESS_KEY` | AWS secret access key           |
 
-An [Application Load Balancer](https://aws.amazon.com/elasticloadbalancing/application-load-balancer/) handles the load on EC2 instances and is attached to [CloudFront](https://aws.amazon.com/cloudfront/) to provide a secure and smooth connection, also used for caching GET requests.
+3. **Run the GitHub Actions workflow manually** to set up infrastructure and deploy the application.
 
-All events are logged in [CloudWatch](https://aws.amazon.com/cloudwatch) for ALB, EC2 instances, and CloudFront.
+> Subsequent changes to the repository will trigger automatic deployment of the updated application.
 
-This entire infrastructure is created using Terraform, with the state stored in an S3 bucket and locks in DynamoDB.
-
-## Setup project in your cloud environment
-
-To run this project in your AWS cloud environment:
-
-> Make sure to make change the s3 bucket name  in the [infrastructure/main.tf](https://github.com/xanderbilla/projectapi/blob/main/infrastructure/main.tf) and [replace the line 34 and 35 with your bucket name](https://github.com/xanderbilla/projectapi/blob/main/.github/workflows/deploy.yml) to manage the state remotely 
-
-1. [Click here](https://github.com/xanderbilla/projectapi/fork) to fork the repository.
-2. Go to **Repository Settings > Security and variables > Actions** and add the following environment variables:
-
-| Variable Name           | Description                             |
-| ----------------------- | --------------------------------------- |
-| `AWS_ACCESS_KEY_ID`     | AWS access key ID                       |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret access key                   |
-
-3. Go to the **Actions** tab and run the jobs manually for the first time to set up the infrastructure in your cloud environment.
-
-> Once the environment is set, any new changes detected in the source code will update the Docker image on ECR, triggering an event to update the container with the new image.
-
-## Usage/Examples
+## Example Usage
 
 ```javascript
 import axios from "axios";
@@ -103,45 +87,41 @@ const getTaskById = async (id) => {
   }
 };
 
-// Usage example
+// Example usage
 getTaskById(1);
 ```
 
-## Run Application Locally (Recommended using Docker)
+## Running Locally with Docker
 
-Clone the project:
+Clone the repository:
 
 ```bash
 git clone https://github.com/xanderbilla/projectapi
 ```
 
-Go to the project directory:
+Navigate to the project directory:
 
 ```bash
 cd projectapi
 ```
 
-Build the project image:
+Build and run the application in a Docker container:
 
 ```bash
-docker build -t spring-image .
+docker build -t projectapi .
+docker run -d -p 8080:8080 -e MONGO_URI="your-mongodb-uri" --name projectapi projectapi
 ```
 
-Run the application:
+## Documentation and References
 
-```bash
-docker run -d -p 8080:8080 -e MONGO_URI="mongodb+srv://YOUR-DB-LINK/projectapi" --name spring-app spring-image
-```
+- [GitHub Actions Docs](https://docs.github.com/actions)
+- [AWS Documentation](https://docs.aws.amazon.com/)
+- [Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
+- [Docker Documentation](https://docs.docker.com)
 
-## References
-
-[Github Actions Docs](https://docs.github.com/actions) |
-[AWS Docs](https://docs.aws.amazon.com/) |
-[Hashicoprs docs](https://developer.hashicorp.com/terraform/docs) |
-[Docker Docs](https://docs.docker.com)
-
-## Authors
+## Author
 
 [Vikas Singh](https://www.github.com/xanderbilla)
 
-[Follow the link to know about me](https://xanderbilla.com)
+[More About Me](https://xanderbilla.com)
+
